@@ -212,6 +212,16 @@ VK_USER_OBJS = $(addsuffix .o, $(VM_USER_CLASSES))
 ifneq ($(VM_TRACE_FST),0)
 ifneq ($(VM_TRACE_FST),)
     LDLIBS += -llz4 -lz
+    # FST writing needs system lz4/zlib (fstcpp includes <lz4.h>). On macOS
+    # the Homebrew prefix is not a default compiler search path, so model
+    # compiles fail with "lz4.h file not found" unless we inject it here.
+    ifeq ($(UNAME_S),Darwin)
+      VK_BREW_PREFIX := $(shell brew --prefix 2>/dev/null)
+      ifneq ($(VK_BREW_PREFIX),)
+        CPPFLAGS += -I$(VK_BREW_PREFIX)/include
+        LDFLAGS += -L$(VK_BREW_PREFIX)/lib
+      endif
+    endif
 endif
 endif
 
